@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Name=Muses
+Comment=A beautiful music player
+Exec=muses
+Icon=com.advaitv.muses
+Terminal=false
+Type=Application
+Categories=Audio;Music;Player;
+StartupNotify=true
+StartupWMClass=com.advaitv.muses
