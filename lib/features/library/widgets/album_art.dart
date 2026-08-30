@@ -28,8 +28,19 @@ class AlbumArt extends StatelessWidget {
     final int? cacheSize = size != null
         ? (size! * MediaQuery.devicePixelRatioOf(context)).round()
         : null;
+
+    // A fixed square box: any parent that hands the art a NON-square slot
+    // (e.g. a ListTile leading) must crop via BoxFit.cover instead of
+    // stretching the image - the "squished queue art" bug.
+    Widget square(Widget child) {
+      if (size == null) {
+        return child;
+      }
+      return SizedBox(width: size, height: size, child: child);
+    }
+
     if (artwork != null) {
-      return ClipRRect(
+      return square(ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
         child: Image.memory(
           artwork!,
@@ -40,7 +51,7 @@ class AlbumArt extends StatelessWidget {
           fit: BoxFit.cover,
           gaplessPlayback: true,
         ),
-      );
+      ));
     }
 
     if (path != null) {
@@ -49,7 +60,7 @@ class AlbumArt extends StatelessWidget {
           p.toLowerCase().endsWith('.jpeg') || 
           p.toLowerCase().endsWith('.png') ||
           p.toLowerCase().endsWith('.webp')) {
-         return ClipRRect(
+         return square(ClipRRect(
             borderRadius: BorderRadius.circular(borderRadius),
             child: Image.file(
               File(p),
@@ -61,11 +72,11 @@ class AlbumArt extends StatelessWidget {
               gaplessPlayback: true,
               errorBuilder: (context, error, stackTrace) => _buildPlaceholder(context),
             ),
-         );
+         ));
       }
     
       if (hasArtwork) {
-        return FutureBuilder<File?>(
+        return square(FutureBuilder<File?>(
           future: ArtworkManager().getArtworkFile(p),
           builder: (context, snapshot) {
             if (snapshot.hasData && snapshot.data != null) {
@@ -84,11 +95,11 @@ class AlbumArt extends StatelessWidget {
             }
             return _buildPlaceholder(context);
           },
-        );
+        ));
       }
     }
 
-    return _buildPlaceholder(context);
+    return square(_buildPlaceholder(context));
   }
 
   Widget _buildPlaceholder(BuildContext context) {
