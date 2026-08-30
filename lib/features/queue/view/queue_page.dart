@@ -153,16 +153,12 @@ class _QueuePageState extends State<QueuePage> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        leading: SizedBox(
-                          width: 48,
-                          height: 48,
-                          child: AlbumArt(
-                            artwork: song.artwork,
-                            path: song.path,
-                            hasArtwork: song.hasArtwork == true,
-                            size: 48,
-                            borderRadius: 8,
-                          ),
+                        leading: AlbumArt(
+                          artwork: song.artwork,
+                          path: song.path,
+                          hasArtwork: song.hasArtwork == true,
+                          size: 48,
+                          borderRadius: 8,
                         ),
                         title: Text(
                           song.title ?? 'Unknown',
