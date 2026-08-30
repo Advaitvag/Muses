@@ -280,11 +280,18 @@ class _HomePageState extends State<HomePage>
 
               Widget? backgroundArt;
               if (themeState.showAlbumArtBackground && song != null) {
+                 // Decode the backdrop at screen resolution instead of the
+                 // artwork's native size (often 2000-3000px): a full-res
+                 // texture behind a 40px blur is the main page-change cost.
+                 final double dpr = MediaQuery.devicePixelRatioOf(context);
+                 final int cacheW =
+                     (MediaQuery.sizeOf(context).width * dpr).round();
                  if (song.artwork != null) {
                     backgroundArt = Image.memory(
                       song.artwork!,
                       fit: BoxFit.cover,
                       gaplessPlayback: true,
+                      cacheWidth: cacheW,
                     );
                  } else if (song.hasArtwork == true) {
                     backgroundArt = FutureBuilder<File?>(
@@ -295,6 +302,7 @@ class _HomePageState extends State<HomePage>
                             snapshot.data!,
                             fit: BoxFit.cover,
                             gaplessPlayback: true,
+                            cacheWidth: cacheW,
                           );
                         }
                         return const SizedBox.shrink();
@@ -327,8 +335,15 @@ class _HomePageState extends State<HomePage>
                       Positioned.fill(
                         child: BackdropFilter(
                           filter: ImageFilter.blur(
-                            sigmaX: themeState.blurSigma,
-                            sigmaY: themeState.blurSigma,
+                            // Cap the sigma: a 40px full-screen blur costs
+                            // several times more than 16px and is visually
+                            // indistinguishable behind the surface overlay.
+                            sigmaX: themeState.blurSigma > 16
+                                ? 16.0
+                                : themeState.blurSigma,
+                            sigmaY: themeState.blurSigma > 16
+                                ? 16.0
+                                : themeState.blurSigma,
                           ),
                           child: Container(
                             color: Theme.of(

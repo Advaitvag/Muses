@@ -81,6 +81,11 @@ class TrayPlayer extends StatelessWidget {
                           return Image.file(
                             snapshot.data!,
                             fit: BoxFit.cover,
+                            // decode at the tray window's size, not the
+                            // artwork's native resolution
+                            cacheWidth: (MediaQuery.sizeOf(context).width *
+                                    MediaQuery.devicePixelRatioOf(context))
+                                .round(),
                           );
                         }
                         return const SizedBox.shrink();
@@ -90,8 +95,14 @@ class TrayPlayer extends StatelessWidget {
                 Positioned.fill(
                   child: BackdropFilter(
                     filter: ImageFilter.blur(
-                      sigmaX: context.read<ThemeBloc>().state.blurSigma,
-                      sigmaY: context.read<ThemeBloc>().state.blurSigma,
+                      // Cap the sigma: 40px full-screen blur is far more
+                      // expensive than 16px and visually near-identical.
+                      sigmaX: context.read<ThemeBloc>().state.blurSigma > 16
+                          ? 16.0
+                          : context.read<ThemeBloc>().state.blurSigma,
+                      sigmaY: context.read<ThemeBloc>().state.blurSigma > 16
+                          ? 16.0
+                          : context.read<ThemeBloc>().state.blurSigma,
                     ),
                     child: Container(
                       color:

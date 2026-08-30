@@ -21,6 +21,13 @@ class AlbumArt extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Decode at display resolution: width/height only affect layout, so
+    // without cacheWidth/cacheHeight Flutter decodes the FULL artwork
+    // (often 2000-3000px) for every 48px thumbnail - the main source of
+    // scroll lag in the library and queue lists.
+    final int? cacheSize = size != null
+        ? (size! * MediaQuery.devicePixelRatioOf(context)).round()
+        : null;
     if (artwork != null) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
@@ -28,6 +35,8 @@ class AlbumArt extends StatelessWidget {
           artwork!,
           width: size,
           height: size,
+          cacheWidth: cacheSize,
+          cacheHeight: cacheSize,
           fit: BoxFit.cover,
           gaplessPlayback: true,
         ),
@@ -46,6 +55,8 @@ class AlbumArt extends StatelessWidget {
               File(p),
               width: size,
               height: size,
+              cacheWidth: cacheSize,
+              cacheHeight: cacheSize,
               fit: BoxFit.cover,
               gaplessPlayback: true,
               errorBuilder: (context, error, stackTrace) => _buildPlaceholder(context),
@@ -64,6 +75,8 @@ class AlbumArt extends StatelessWidget {
                   snapshot.data!,
                   width: size,
                   height: size,
+                  cacheWidth: cacheSize,
+                  cacheHeight: cacheSize,
                   fit: BoxFit.cover,
                   gaplessPlayback: true,
                 ),
