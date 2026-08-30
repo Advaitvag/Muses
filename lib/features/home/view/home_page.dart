@@ -270,9 +270,14 @@ class _HomePageState extends State<HomePage>
 
                 if (transparent) return navBar;
 
+                // A live backdrop blur re-rasterises on every scroll frame;
+                // a translucent surface reads the same and costs nothing.
                 return ClipRect(
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                  child: ColoredBox(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .surfaceContainer
+                        .withValues(alpha: 0.92),
                     child: navBar,
                   ),
                 );
@@ -329,27 +334,24 @@ class _HomePageState extends State<HomePage>
                     ),
                     if (backgroundArt != null)
                       Positioned.fill(
-                        child: backgroundArt,
+                        child: ImageFiltered(
+                          // Blur the IMAGE layer (rasterised once per
+                          // artwork change) instead of the live backdrop -
+                          // a full-screen BackdropFilter re-blurs every
+                          // frame while lists scroll underneath it.
+                          imageFilter: ImageFilter.blur(
+                            sigmaX: themeState.blurSigma,
+                            sigmaY: themeState.blurSigma,
+                          ),
+                          child: backgroundArt,
+                        ),
                       ),
                     if (backgroundArt != null)
                       Positioned.fill(
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(
-                            // Cap the sigma: a 40px full-screen blur costs
-                            // several times more than 16px and is visually
-                            // indistinguishable behind the surface overlay.
-                            sigmaX: themeState.blurSigma > 16
-                                ? 16.0
-                                : themeState.blurSigma,
-                            sigmaY: themeState.blurSigma > 16
-                                ? 16.0
-                                : themeState.blurSigma,
-                          ),
-                          child: Container(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.surface.withValues(alpha: 0.5),
-                          ),
+                        child: Container(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surface.withValues(alpha: 0.5),
                         ),
                       ),
 
@@ -381,19 +383,18 @@ class _HomePageState extends State<HomePage>
                         children: [
                           if (!isBottomNav)
                             ClipRect(
-                              child: BackdropFilter(
-                                filter:
-                                    ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                                child: Container(
-                                  color: themeState.showAlbumArtBackground
-                                      ? Theme.of(context)
-                                          .colorScheme
-                                          .surface
-                                          .withValues(alpha: 0.5)
-                                      : Theme.of(context)
-                                          .colorScheme
-                                          .surfaceContainer,
-                                  child: Column(
+                              // No live backdrop blur: translucent surface
+                              // instead (scroll under the top bar stays cheap).
+                              child: Container(
+                                color: themeState.showAlbumArtBackground
+                                    ? Theme.of(context)
+                                        .colorScheme
+                                        .surface
+                                        .withValues(alpha: 0.72)
+                                    : Theme.of(context)
+                                        .colorScheme
+                                        .surfaceContainer,
+                                child: Column(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       if (Platform.isWindows ||
@@ -418,7 +419,6 @@ class _HomePageState extends State<HomePage>
                                     ],
                                   ),
                                 ),
-                              ),
                             )
                           else if (Platform.isWindows ||
                               Platform.isLinux ||

@@ -64,12 +64,22 @@ class TrayPlayer extends StatelessWidget {
 
             return Stack(
               children: [
-                // Blurred Background
+                // Blurred Background - blur the image layer (rasterised
+                // once per artwork change), never the live backdrop.
                 if (song.artwork != null)
                   Positioned.fill(
-                    child: Image.memory(
-                      song.artwork!,
-                      fit: BoxFit.cover,
+                    child: ImageFiltered(
+                      imageFilter: ImageFilter.blur(
+                        sigmaX: context.read<ThemeBloc>().state.blurSigma,
+                        sigmaY: context.read<ThemeBloc>().state.blurSigma,
+                      ),
+                      child: Image.memory(
+                        song.artwork!,
+                        fit: BoxFit.cover,
+                        cacheWidth: (MediaQuery.sizeOf(context).width *
+                                MediaQuery.devicePixelRatioOf(context))
+                            .round(),
+                      ),
                     ),
                   )
                 else if (song.hasArtwork == true)
@@ -78,14 +88,26 @@ class TrayPlayer extends StatelessWidget {
                       future: ArtworkManager().getArtworkFile(song.path),
                       builder: (context, snapshot) {
                         if (snapshot.hasData && snapshot.data != null) {
-                          return Image.file(
-                            snapshot.data!,
-                            fit: BoxFit.cover,
-                            // decode at the tray window's size, not the
-                            // artwork's native resolution
-                            cacheWidth: (MediaQuery.sizeOf(context).width *
-                                    MediaQuery.devicePixelRatioOf(context))
-                                .round(),
+                          return ImageFiltered(
+                            imageFilter: ImageFilter.blur(
+                              sigmaX: context
+                                  .read<ThemeBloc>()
+                                  .state
+                                  .blurSigma,
+                              sigmaY: context
+                                  .read<ThemeBloc>()
+                                  .state
+                                  .blurSigma,
+                            ),
+                            child: Image.file(
+                              snapshot.data!,
+                              fit: BoxFit.cover,
+                              // decode at the tray window's size, not the
+                              // artwork's native resolution
+                              cacheWidth: (MediaQuery.sizeOf(context).width *
+                                      MediaQuery.devicePixelRatioOf(context))
+                                  .round(),
+                            ),
                           );
                         }
                         return const SizedBox.shrink();
@@ -93,21 +115,9 @@ class TrayPlayer extends StatelessWidget {
                     ),
                   ),
                 Positioned.fill(
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(
-                      // Cap the sigma: 40px full-screen blur is far more
-                      // expensive than 16px and visually near-identical.
-                      sigmaX: context.read<ThemeBloc>().state.blurSigma > 16
-                          ? 16.0
-                          : context.read<ThemeBloc>().state.blurSigma,
-                      sigmaY: context.read<ThemeBloc>().state.blurSigma > 16
-                          ? 16.0
-                          : context.read<ThemeBloc>().state.blurSigma,
-                    ),
-                    child: Container(
-                      color:
-                          Theme.of(context).colorScheme.surface.withValues(alpha: 0.7),
-                    ),
+                  child: Container(
+                    color:
+                        Theme.of(context).colorScheme.surface.withValues(alpha: 0.7),
                   ),
                 ),
                 Container(
