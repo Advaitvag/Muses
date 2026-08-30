@@ -149,7 +149,7 @@ class MusesAppState extends State<MusesApp> with WindowListener, TrayListener {
 
   Future<void> _initTray() async {
     if (!_isDesktop) return;
-    await trayManager.setIcon('assets/tray_icon.jpg');
+    await trayManager.setIcon('assets/tray_icon.png');
     await _updateTrayMenu();
   }
 

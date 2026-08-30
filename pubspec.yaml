@@ -112,7 +112,7 @@ flutter:
 
   uses-material-design: true
   assets:
-    - assets/tray_icon.jpg
+    - assets/tray_icon.png
     - assets/muses_logo.jpg
     - assets/muses_logo.png
 
