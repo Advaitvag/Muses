@@ -54,6 +54,7 @@ void setupDI(ThemeBloc themeBloc, MusesAudioHandler audioHandler, AudioPlayer au
   getIt.registerSingleton<VolumeService>(volumeService);
 
   if (Platform.isLinux) {
-    getIt.registerSingleton<MusesMprisService>(MusesMprisService(playerBloc));
+    getIt.registerSingleton<MusesMprisService>(
+        MusesMprisService(playerBloc, audioSettingsBloc));
   }
 }

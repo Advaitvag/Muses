@@ -5,10 +5,11 @@ import 'package:anni_mpris_service/anni_mpris_service.dart';
 import 'package:muses/core/utils/artwork_manager.dart';
 import 'package:muses/features/library/models/song.dart';
 import 'package:muses/features/player/bloc/player_bloc.dart';
+import 'package:muses/features/settings/bloc/audio_settings_bloc.dart';
 import 'package:just_audio/just_audio.dart' as ja;
 
 class MusesMprisService extends MPRISService {
-  MusesMprisService(this._playerBloc)
+  MusesMprisService(this._playerBloc, this._audioSettingsBloc)
       : super(
           "muses",
           identity: "Muses",
@@ -24,12 +25,31 @@ class MusesMprisService extends MPRISService {
     if (Platform.isLinux) {
       _playerBloc.stream.listen(_onPlayerStateChanged);
       _onPlayerStateChanged(_playerBloc.state);
+      _audioSettingsBloc.stream.listen(_onAudioSettingsChanged);
+      _onAudioSettingsChanged(_audioSettingsBloc.state);
     }
   }
 
   final PlayerBloc _playerBloc;
+  final AudioSettingsBloc _audioSettingsBloc;
   Song? _lastSong;
   String? _currentArtPath;
+
+  /// Mirror app-side volume changes onto the MPRIS Volume property so
+  /// clients (e.g. the Muses Orbit widget) see the real volume.  The base
+  /// setter no-ops when the value is unchanged, so no loops here.
+  void _onAudioSettingsChanged(AudioSettingsState state) {
+    super.volume = state.volume.clamp(0.0, 1.0);
+  }
+
+  /// A client set the volume via MPRIS (e.g. the widget's mouse wheel):
+  /// apply it to the app's volume and keep the MPRIS property consistent.
+  @override
+  Future<void> onVolume(double volume) async {
+    final v = volume.clamp(0.0, 1.0);
+    _audioSettingsBloc.add(VolumeChanged(v));
+    super.volume = v;
+  }
 
   void _onPlayerStateChanged(PlayerState state) {
     playbackStatus = _mapStatus(state.status);
