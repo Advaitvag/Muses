@@ -22,21 +22,37 @@ class AlbumArt extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Decode at display resolution: width/height only affect layout, so
-    // without cacheWidth/cacheHeight Flutter decodes the FULL artwork
+    // without a decode-size cap Flutter decodes the FULL artwork
     // (often 2000-3000px) for every 48px thumbnail - the main source of
     // scroll lag in the library and queue lists.
+    //
+    // Use ResizeImagePolicy.fit, NOT the default `exact` (which is what
+    // Image's cacheWidth/cacheHeight produce). `exact` rescales the decode
+    // to precisely cacheWidth x cacheHeight - like BoxFit.fill - so
+    // non-square album art (e.g. 500x512) is stretched at the pixel level
+    // and BoxFit.cover then has nothing left to crop. That showed up as
+    // squished art in the queue page and mini player.
     final int? cacheSize = size != null
         ? (size! * MediaQuery.devicePixelRatioOf(context)).round()
         : null;
+
+    ImageProvider<Object> decodeAt(ImageProvider<Object> provider) =>
+        cacheSize == null
+            ? provider
+            : ResizeImage(
+                provider,
+                width: cacheSize,
+                height: cacheSize,
+                policy: ResizeImagePolicy.fit,
+              );
+
     if (artwork != null) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
-        child: Image.memory(
-          artwork!,
+        child: Image(
+          image: decodeAt(MemoryImage(artwork!)),
           width: size,
           height: size,
-          cacheWidth: cacheSize,
-          cacheHeight: cacheSize,
           fit: BoxFit.cover,
           gaplessPlayback: true,
         ),
@@ -51,12 +67,10 @@ class AlbumArt extends StatelessWidget {
           p.toLowerCase().endsWith('.webp')) {
          return ClipRRect(
             borderRadius: BorderRadius.circular(borderRadius),
-            child: Image.file(
-              File(p),
+            child: Image(
+              image: decodeAt(FileImage(File(p))),
               width: size,
               height: size,
-              cacheWidth: cacheSize,
-              cacheHeight: cacheSize,
               fit: BoxFit.cover,
               gaplessPlayback: true,
               errorBuilder: (context, error, stackTrace) => _buildPlaceholder(context),
@@ -71,12 +85,10 @@ class AlbumArt extends StatelessWidget {
             if (snapshot.hasData && snapshot.data != null) {
               return ClipRRect(
                 borderRadius: BorderRadius.circular(borderRadius),
-                child: Image.file(
-                  snapshot.data!,
+                child: Image(
+                  image: decodeAt(FileImage(snapshot.data!)),
                   width: size,
                   height: size,
-                  cacheWidth: cacheSize,
-                  cacheHeight: cacheSize,
                   fit: BoxFit.cover,
                   gaplessPlayback: true,
                 ),

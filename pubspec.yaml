@@ -72,7 +72,7 @@ dev_dependencies:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/muses_logo.png"
+  image_path: "assets/muses_logo.jpg"
   min_sdk_android: 21
   web:
     generate: true
@@ -90,17 +90,17 @@ flutter_launcher_icons:
 
 flutter_native_splash:
   color: "#121212"
-  image: assets/muses_logo.png
-  branding: assets/muses_logo.png
+  image: assets/muses_logo.jpg
+  branding: assets/muses_logo.jpg
   color_dark: "#121212"
-  image_dark: assets/muses_logo.png
-  branding_dark: assets/muses_logo.png
+  image_dark: assets/muses_logo.jpg
+  branding_dark: assets/muses_logo.jpg
   
   android_12:
     color: "#121212"
     color_dark: "#121212"
-    image: assets/muses_logo.png
-    image_dark: assets/muses_logo.png
+    image: assets/muses_logo.jpg
+    image_dark: assets/muses_logo.jpg
     icon_background_color: "#121212"
     icon_background_color_dark: "#121212"
 
